@@ -3,6 +3,8 @@ const cors = require('cors');
 const { connect, getDb } = require('./db');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./swagger.json');
+const redoc = require('redoc-express');
+const path = require('path');
 const { ObjectId } = require('mongodb');
 
 const app = express();
@@ -18,9 +20,17 @@ app.use(cors({
 app.use(express.json());
 app.options('*', cors()); // respuesta a OPTIONS automática
 
-// ✅ Swagger UI disponible en /docs
+// Swagger UI en /docs
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
+// Servir el archivo swagger.json para Redoc
+app.use('/swagger.json', express.static(path.join(__dirname, 'swagger.json')));
+
+// Redoc UI en /redoc
+app.get('/redoc', redoc({
+  title: 'Auth Service API - Redoc',
+  specUrl: '/swagger.json'
+}));
 /**
  * Inicia conexión con MongoDB y define los endpoints
  */
