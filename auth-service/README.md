@@ -1,6 +1,9 @@
 npm install swagger-ui-express
 npm install swagger-jsdoc
 npm install redoc-express
+npm install uuid
+npm install jsonwebtoken
+npm install axios
 
 
 npm install

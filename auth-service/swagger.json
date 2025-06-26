@@ -7,7 +7,7 @@
   "paths": {
     "/login": {
       "post": {
-        "summary": "Login sin autenticación",
+        "summary": "Login con JWT y sesión",
         "requestBody": {
           "required": true,
           "content": {
@@ -17,24 +17,77 @@
                 "properties": {
                   "email": { "type": "string" },
                   "password": { "type": "string" }
-                }
+                },
+                "required": ["email", "password"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Respuesta con usuario o error"
+            "description": "Login exitoso con JWT y sessionId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "token": { "type": "string" },
+                    "sessionId": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas"
           }
         }
       }
     },
     "/logout": {
-      "get": {
-        "summary": "Logout ficticio",
+      "post": {
+        "summary": "Cerrar sesión usando sessionId",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string",
+                    "example": "f78b3296-af00-40e2-b810-965d77e77b3b"
+                  }
+                },
+                "required": ["sessionId"]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
-            "description": "Respuesta sin efecto real"
+            "description": "Sesión cerrada exitosamente"
+          },
+          "404": {
+            "description": "Sesión no encontrada"
+          }
+        }
+      }
+    },
+    "/public-key": {
+      "get": {
+        "summary": "Obtener clave pública para verificar JWT",
+        "responses": {
+          "200": {
+            "description": "Clave pública RSA en texto plano",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
