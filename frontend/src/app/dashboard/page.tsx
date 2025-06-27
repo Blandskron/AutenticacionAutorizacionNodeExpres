@@ -1,13 +1,16 @@
 'use client';
+
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { jwtDecode } from 'jwt-decode';
 import axios from 'axios';
+import { getDecryptedToken } from '@/lib/api/token.utils';
+import LogoutButton from '@/components/LogoutButton';
 
 interface DecodedToken {
   email: string;
   role: 'ADMIN' | 'USER';
-  userId: string;
+  sub: string;
   exp: number;
 }
 
@@ -21,25 +24,43 @@ export default function DashboardPage() {
   const router = useRouter();
   const [role, setRole] = useState<'ADMIN' | 'USER' | null>(null);
   const [userId, setUserId] = useState<string>('');
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (typeof window === 'undefined') return;
+
+    const token = getDecryptedToken();
+    const session = sessionStorage.getItem('sessionId');
+
+    console.log('🔍 TOKEN:', token);
+    console.log('🔍 SESSION:', session);
+
+    if (!token || !session) {
+      console.warn('⛔ Token o sesión no presentes');
       router.push('/login');
       return;
     }
 
     try {
       const decoded = jwtDecode<DecodedToken>(token);
+
+      if (decoded.exp * 1000 < Date.now()) {
+        console.warn('⏳ Token expirado');
+        router.push('/login');
+        return;
+      }
+
       setRole(decoded.role);
-      setUserId(decoded.userId);
+      setUserId(decoded.sub);
+      setSessionId(session);
 
       fetchUsers(token);
     } catch (err) {
-      console.error('Error al decodificar token:', err);
+      console.error('💥 Error al decodificar token:', err);
       router.push('/login');
+      setLoading(false); // evita loop si decode falla
     }
   }, [router]);
 
@@ -53,14 +74,14 @@ export default function DashboardPage() {
       });
       setUsers(response.data);
     } catch (err) {
-      console.error('Error al obtener usuarios:', err);
+      console.error('🔥 Error al obtener usuarios:', err);
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreateUser = () => {
-    router.push('/register'); // o la ruta que tengas para registrar
+    router.push('/register');
   };
 
   const handleEditProfile = () => {
@@ -71,7 +92,10 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Bienvenido al Dashboard</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Bienvenido al Dashboard</h1>
+        {sessionId && <LogoutButton sessionId={sessionId} />}
+      </div>
 
       {role === 'ADMIN' && (
         <>

@@ -1,7 +1,9 @@
 'use client';
+
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '@/lib/api/auth';
+import { storeEncryptedToken } from '@/lib/api/token.utils';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,7 +29,14 @@ export default function LoginPage() {
     try {
       setLoading(true);
       const data = await login({ email, password });
-      localStorage.setItem('token', data.token); // o data.jwt según el backend
+
+      // ✅ Guardar token encriptado
+      storeEncryptedToken(data.token);
+
+      // ✅ Guardar sessionId
+      sessionStorage.setItem('sessionId', data.sessionId);
+
+      // ✅ Redirigir
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Error de autenticación');
