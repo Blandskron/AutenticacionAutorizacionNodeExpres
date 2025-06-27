@@ -9,6 +9,8 @@ pnpm-debug.log*
 # Entorno
 .env
 .env.*.local
+venv
+
 
 # Directorios de dependencias
 node_modules/

@@ -1,0 +1,176 @@
+{
+  "info": {
+    "name": "User Service API",
+    "_postman_id": "d59ea283-6d5b-45cb-a41b-0f0700fb0b45",
+    "description": "Colección Postman para gestionar usuarios con CSRF y JWT.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Obtener CSRF Token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:4000/csrf-token",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["csrf-token"]
+        }
+      }
+    },
+    {
+      "name": "Verificar Credenciales",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"juan@gmail.com\",\n  \"password\": \"1234\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:4000/users/credentials",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["users", "credentials"]
+        }
+      }
+    },
+    {
+      "name": "Crear Usuario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"nuevo@usuario.com\",\n  \"password\": \"1234\",\n  \"role\": \"USER\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:4000/users",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["users"]
+        }
+      }
+    },
+    {
+      "name": "Listar Usuarios",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:4000/users",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["users"]
+        }
+      }
+    },
+    {
+      "name": "Obtener Usuario por ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:4000/users/{{userId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["users", "{{userId}}"]
+        }
+      }
+    },
+    {
+      "name": "Actualizar Usuario",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"ADMIN\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:4000/users/{{userId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["users", "{{userId}}"]
+        }
+      }
+    },
+    {
+      "name": "Eliminar Usuario",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{jwtToken}}"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:4000/users/{{userId}}",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "4000",
+          "path": ["users", "{{userId}}"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "csrfToken",
+      "value": ""
+    },
+    {
+      "key": "jwtToken",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    }
+  ]
+}
