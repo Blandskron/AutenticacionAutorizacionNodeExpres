@@ -1,0 +1,66 @@
+services:
+  mongo:
+    image: mongo:6.0
+    container_name: lab-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - lab-net
+
+  mongo-express:
+    image: mongo-express:1.0.2
+    container_name: mongo-ui
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+    depends_on:
+      - mongo
+    networks:
+      - lab-net
+
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: auth-service
+    ports:
+      - "3000:3000"
+    networks:
+      - lab-net
+    depends_on:
+      - mongo
+    env_file:
+      - ./auth-service/.env
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: user-service
+    ports:
+      - "4000:4000"
+    networks:
+      - lab-net
+    depends_on:
+      - mongo
+    env_file:
+      - ./user-service/.env
+
+volumes:
+  mongo-data:
+
+networks:
+  lab-net:
+    driver: bridge

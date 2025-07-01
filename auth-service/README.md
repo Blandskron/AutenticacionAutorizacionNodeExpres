@@ -4,7 +4,7 @@ npm install redoc-express
 npm install uuid
 npm install jsonwebtoken
 npm install axios
-
+npm install dotenv
 
 npm install
 npm i

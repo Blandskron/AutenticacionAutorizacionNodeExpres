@@ -3,6 +3,7 @@ npm install swagger-jsdoc
 npm install redoc-express
 npm install csurf
 npm install cookie-parser bcrypt axios jsonwebtoken
+npm install dotenv
 
 
 npm install

@@ -1,4 +1,4 @@
-// auth-service/index.js (mejorado con verificación CSRF + credenciales desde user-service)
+require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
@@ -16,8 +16,9 @@ const app = express();
 app.use(cors({ origin: '*', credentials: true }));
 app.use(express.json());
 
-const PRIVATE_KEY = fs.readFileSync(path.join(__dirname, 'keys', 'private.key'), 'utf8');
-const PUBLIC_KEY = fs.readFileSync(path.join(__dirname, 'keys', 'public.key'), 'utf8');
+// === Cargar claves desde ruta especificada en .env ===
+const PRIVATE_KEY = fs.readFileSync(path.resolve(process.env.PRIVATE_KEY_PATH), 'utf8');
+const PUBLIC_KEY = fs.readFileSync(path.resolve(process.env.PUBLIC_KEY_PATH), 'utf8');
 
 // Swagger y Redoc
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -27,22 +28,22 @@ app.get('/redoc', redoc({ title: 'Auth Service API - Redoc', specUrl: '/swagger.
 // Conexión a MongoDB
 connect().then(() => console.log('✅ Auth service connected to MongoDB'));
 
-// POST /login - Autenticación delegada al user-service con protección CSRF
+// === POST /login ===
 app.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
     // Obtener CSRF token desde user-service
-    const csrfResponse = await axios.get('http://localhost:4000/csrf-token', {
+    const csrfResponse = await axios.get(`${process.env.USER_SERVICE_URL}/csrf-token`, {
       withCredentials: true
     });
 
     const csrfToken = csrfResponse.data.csrfToken;
     const cookies = csrfResponse.headers['set-cookie'];
 
-    // Consultar credenciales en user-service con CSRF token
+    // Verificar credenciales en user-service
     const credentialsResponse = await axios.post(
-      'http://localhost:4000/users/credentials',
+      `${process.env.USER_SERVICE_URL}/users/credentials`,
       { email, password },
       {
         headers: {
@@ -56,7 +57,7 @@ app.post('/login', async (req, res) => {
 
     const { userId, email: userEmail, role } = credentialsResponse.data;
 
-    // Generar JWT y crear sesión
+    // Crear JWT + sesión
     const payload = { sub: userId, email: userEmail, role: role || 'USER' };
     const token = jwt.sign(payload, PRIVATE_KEY, { algorithm: 'RS256', expiresIn: '1h' });
 
@@ -78,7 +79,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// POST /logout - Revocar sesión (marcar como inactiva)
+// === POST /logout ===
 app.post('/logout', async (req, res) => {
   const { sessionId } = req.body;
   const db = getDb();
@@ -95,13 +96,14 @@ app.post('/logout', async (req, res) => {
   res.json({ success: true, message: 'Sesión cerrada exitosamente' });
 });
 
-// GET /public-key - Para otros servicios
+// === GET /public-key ===
 app.get('/public-key', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');
   res.send(PUBLIC_KEY);
 });
 
-// Iniciar servidor
-app.listen(3000, () => {
-  console.log('🚀 Auth service escuchando en http://localhost:3000');
+// === Iniciar servidor ===
+const port = process.env.AUTH_SERVICE_PORT || 3000;
+app.listen(port, () => {
+  console.log(`🚀 Auth service escuchando en http://localhost:${port}`);
 });
